@@ -1,0 +1,200 @@
+[
+ {
+  "id": "T01",
+  "type": "On-brand",
+  "content": "Brightly helps teams plan their week in one place. Start with a 14-day free trial.",
+  "expected": [],
+  "notes": "Clean copy with correct trial length.",
+  "actual": [],
+  "detected": 0,
+  "false_alarms": 0
+ },
+ {
+  "id": "T02",
+  "type": "On-brand",
+  "content": "The Pro plan costs $12 per user per month, and you can cancel anytime.",
+  "expected": [],
+  "notes": "Correct price.",
+  "actual": [],
+  "detected": 0,
+  "false_alarms": 0
+ },
+ {
+  "id": "T03",
+  "type": "On-brand",
+  "content": "Brightly was founded in 2019 to make planning simpler for small teams.",
+  "expected": [],
+  "notes": "Correct founding year.",
+  "actual": [],
+  "detected": 0,
+  "false_alarms": 0
+ },
+ {
+  "id": "T04",
+  "type": "On-brand",
+  "content": "Shared calendars let your team see the same schedule. Designed to help reduce missed deadlines.",
+  "expected": [],
+  "notes": "Qualified claim, plain words.",
+  "actual": [],
+  "detected": 0,
+  "false_alarms": 0
+ },
+ {
+  "id": "T05",
+  "type": "On-brand",
+  "content": "Our support team replies within one business day.",
+  "expected": [],
+  "notes": "No brand name, no risky claims.",
+  "actual": [],
+  "detected": 0,
+  "false_alarms": 0
+ },
+ {
+  "id": "T06",
+  "type": "Off-brand",
+  "content": "Brightly is the world's best planner and a true game changer.",
+  "expected": [
+   "Tone"
+  ],
+  "notes": "Hype language.",
+  "actual": [
+   "Tone"
+  ],
+  "detected": 1,
+  "false_alarms": 0
+ },
+ {
+  "id": "T07",
+  "type": "Off-brand",
+  "content": "We guarantee you will never miss a deadline again.",
+  "expected": [
+   "Claims"
+  ],
+  "notes": "Absolute guarantee.",
+  "actual": [
+   "Claims"
+  ],
+  "detected": 1,
+  "false_alarms": 0
+ },
+ {
+  "id": "T08",
+  "type": "Off-brand",
+  "content": "Brightly is 100% secure and risk-free.",
+  "expected": [
+   "Claims"
+  ],
+  "notes": "Absolute security claim.",
+  "actual": [
+   "Claims"
+  ],
+  "detected": 1,
+  "false_alarms": 0
+ },
+ {
+  "id": "T09",
+  "type": "Off-brand",
+  "content": "Switch today because we are better than Acme.",
+  "expected": [
+   "Competitors"
+  ],
+  "notes": "Names a competitor.",
+  "actual": [
+   "Competitors"
+  ],
+  "detected": 1,
+  "false_alarms": 0
+ },
+ {
+  "id": "T10",
+  "type": "Off-brand",
+  "content": "Leverage our cutting-edge synergy to shift your paradigm.",
+  "expected": [
+   "Language"
+  ],
+  "notes": "Jargon.",
+  "actual": [
+   "Language"
+  ],
+  "detected": 1,
+  "false_alarms": 0
+ },
+ {
+  "id": "T11",
+  "type": "Off-brand",
+  "content": "TRY BRIGHTLY TODAY!",
+  "expected": [
+   "Style",
+   "Naming"
+  ],
+  "notes": "ALL CAPS and wrong brand casing.",
+  "actual": [
+   "Naming",
+   "Style"
+  ],
+  "detected": 2,
+  "false_alarms": 0
+ },
+ {
+  "id": "T12",
+  "type": "Off-brand",
+  "content": "Bright-ly offers a 30-day free trial.",
+  "expected": [
+   "Naming",
+   "Facts"
+  ],
+  "notes": "Wrong name and wrong trial length.",
+  "actual": [
+   "Facts",
+   "Naming"
+  ],
+  "detected": 2,
+  "false_alarms": 0
+ },
+ {
+  "id": "T13",
+  "type": "Off-brand",
+  "content": "Our Pro plan is just $20 per user per month.",
+  "expected": [
+   "Facts"
+  ],
+  "notes": "Wrong price.",
+  "actual": [
+   "Facts"
+  ],
+  "detected": 1,
+  "false_alarms": 0
+ },
+ {
+  "id": "T14",
+  "type": "Off-brand",
+  "content": "Brightly was founded in 2015 and is the world's best, risk-free tool. It's better than Zenith.",
+  "expected": [
+   "Facts",
+   "Tone",
+   "Claims",
+   "Competitors"
+  ],
+  "notes": "Multiple issues in one piece.",
+  "actual": [
+   "Claims",
+   "Competitors",
+   "Facts",
+   "Tone"
+  ],
+  "detected": 4,
+  "false_alarms": 0
+ },
+ {
+  "id": "T15",
+  "type": "Off-brand",
+  "content": "Honestly, nobody else even comes close to us, and you will love it.",
+  "expected": [
+   "Tone"
+  ],
+  "notes": "Subtle tone issue. Rules-only is expected to miss it; the LLM should catch it.",
+  "actual": [],
+  "detected": 0,
+  "false_alarms": 0
+ }
+]

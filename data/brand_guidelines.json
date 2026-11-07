@@ -1,0 +1,17 @@
+{
+  "brand": "Brightly",
+  "rules": [
+    {"id":"R1","category":"Tone","severity":"warning","text":"Voice is friendly, clear and confident. Avoid hype and exaggeration.","patterns":["\\bworld'?s best\\b","\\brevolutionary\\b","\\bgame[- ]?changer\\b","\\bunbelievable\\b","\\bmind[- ]?blowing\\b"],"suggestion":"Replace hype with a specific, verifiable benefit."},
+    {"id":"R2","category":"Claims","severity":"critical","text":"Never make absolute or guaranteed claims about results, savings or security.","patterns":["\\bguarantee[ds]?\\b","\\b100% (safe|secure|accurate|effective)\\b","\\bnever fails?\\b","\\brisk[- ]free\\b"],"suggestion":"Use qualified language such as 'helps reduce' or 'designed to'."},
+    {"id":"R3","category":"Competitors","severity":"critical","text":"Do not name or disparage competitors.","patterns":["\\bbetter than (acme|zenith|globex)\\b","\\b(acme|zenith|globex)\\b"],"suggestion":"Remove the competitor reference and describe Brightly's own strengths."},
+    {"id":"R4","category":"Language","severity":"suggestion","text":"Use plain words. Avoid jargon such as 'synergy', 'leverage' or 'paradigm'.","patterns":["\\bsynerg\\w*\\b","\\bleverag(e|ing)\\b","\\bparadigm\\b","\\bcutting[- ]edge\\b"],"suggestion":"Use simpler wording, e.g. 'use' instead of 'leverage'."},
+    {"id":"R5","category":"Style","severity":"suggestion","text":"No ALL CAPS words and at most one exclamation mark per piece.","patterns":["\\b[A-Z]{5,}\\b","!.*!"],"suggestion":"Use sentence case and keep exclamation marks to a minimum."},
+    {"id":"R6","category":"Naming","severity":"warning","text":"The product is always written 'Brightly' (capital B, one word).","patterns":["(?i)\\bbright[- ]ly\\b","\\bBRIGHTLY\\b","\\bbrightly\\b(?<!Brightly)"],"suggestion":"Write the brand name as 'Brightly'."}
+  ],
+  "facts": [
+    {"id":"F1","key":"free trial","text":"Brightly offers a 14-day free trial.","number":14,"unit":"day"},
+    {"id":"F2","key":"price","text":"The Pro plan costs $12 per user per month.","number":12,"unit":"$"},
+    {"id":"F3","key":"founded","text":"Brightly was founded in 2019.","number":2019,"unit":"year"},
+    {"id":"F4","key":"uptime","text":"Brightly targets 99.9% uptime.","number":99.9,"unit":"%"}
+  ]
+}

@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: brandguard-api
+    runtime: docker
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: LLM_MODEL
+        value: claude-sonnet-5-5
+      - key: DB_PATH
+        value: /tmp/brandguard.db
