@@ -4,10 +4,41 @@ import sqlite3
 import uuid
 import time
 
+import psycopg
+from psycopg.rows import dict_row
+
 DB_PATH = os.getenv("DB_PATH", "brandguard.db")
 
 
+class PostgresCompat:
+    """Compatibility wrapper for the existing SQLite-style database calls."""
+
+    def __init__(self, connection):
+        self.connection = connection
+
+    def execute(self, sql, params=()):
+        return self.connection.execute(sql.replace("?", "%s"), params)
+
+    def executescript(self, script):
+        for statement in script.split(";"):
+            if statement.strip():
+                self.execute(statement)
+
+    def __enter__(self):
+        self.connection.__enter__()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        return self.connection.__exit__(exc_type, exc_value, traceback)
+
+
 def conn():
+    database_url = os.getenv("DATABASE_URL")
+
+    if database_url:
+        connection = psycopg.connect(database_url, row_factory=dict_row)
+        return PostgresCompat(connection)
+
     c = sqlite3.connect(DB_PATH)
     c.row_factory = sqlite3.Row
     return c
@@ -79,6 +110,15 @@ def init():
             details TEXT,
             created_at REAL,
             FOREIGN KEY(review_id) REFERENCES reviews(id)
+        );
+        CREATE TABLE IF NOT EXISTS users (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL UNIQUE,
+            password_hash TEXT NOT NULL,
+            role TEXT NOT NULL DEFAULT 'Creator',
+            is_active INTEGER NOT NULL DEFAULT 1,
+            created_at REAL NOT NULL
         );
         """)
 
