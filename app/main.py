@@ -177,6 +177,9 @@ def update_user_role(
 def analytics(user=Depends(auth.get_current_user)):
     return db.get_analytics()
 
+@app.get("/api/demo/analytics")
+def demo_analytics():
+    return db.get_demo_analytics()
 @app.get("/api/health")
 def health():
     return {"status": "ok", "llm": bool(llm.API_KEY()), "retrieval": retrieval.backend_name()}
@@ -186,7 +189,42 @@ def guidelines(user=Depends(auth.get_current_user)):
     g = retrieval.GUIDE
     return {"brand": g["brand"], "rules": [{k: r[k] for k in ("id", "category", "severity", "text")} for r in g["rules"]],
             "facts": [{"id": f["id"], "text": f["text"]} for f in g["facts"]]}
+@app.post("/api/demo/review")
+def public_demo_review(body: ReviewIn):
+    text = body.text.strip()
 
+    findings = rules.rule_findings(text) + rules.fact_findings(text)
+    ctx = retrieval.retrieve(text)
+    ai = llm.llm_review(text, ctx)
+
+    mode = "llm+rules" if ai else "rules-only"
+    summary = ""
+
+    if ai:
+        findings += ai.get("findings", [])
+        summary = ai.get("summary", "")
+
+    findings = sorted(_dedupe(findings), key=lambda f: ORDER[f["severity"]])
+
+    for f in findings:
+        f.setdefault("rule_id", "LLM")
+
+    if not summary:
+        c = {s: sum(1 for f in findings if f["severity"] == s) for s in ORDER}
+        summary = (
+            f'{len(findings)} issue(s): {c["critical"]} critical, '
+            f'{c["warning"]} warning, {c["suggestion"]} suggestion.'
+            if findings else "No brand issues found."
+        )
+
+    rid = db.save_review(text, findings, summary, mode, is_demo=True)
+
+    return {
+        "review_id": rid,
+        "mode": mode,
+        "summary": summary,
+        "findings": findings
+    }
 @app.post("/api/review")
 def review(body: ReviewIn, user=Depends(auth.get_current_user)):
     text = body.text.strip()
@@ -218,6 +256,24 @@ def get_review(rid: str, user=Depends(auth.get_current_user)):
     if not r: raise HTTPException(404, "Review not found")
     return r
 
+@app.post("/api/demo/reviews/{rid}/findings/{fid}/decision")
+def demo_finding_decision(rid: str, fid: str, d: DecisionIn):
+    if not rid.startswith("demo_"):
+        raise HTTPException(403, "Demo reviews only")
+
+    if d.status == "edited" and not d.edited_fix:
+        raise HTTPException(422, "edited_fix required")
+
+    if not db.set_decision(
+        rid,
+        fid,
+        d.status,
+        d.edited_fix,
+        "Demo Creator"
+    ):
+        raise HTTPException(404, "Finding not found")
+
+    return {"ok": True}
 @app.post("/api/reviews/{rid}/findings/{fid}/decision")
 def decide(rid: str, fid: str, d: DecisionIn, user=Depends(auth.get_current_user)):
     if d.status == "edited" and not d.edited_fix:
@@ -236,6 +292,44 @@ def decide(rid: str, fid: str, d: DecisionIn, user=Depends(auth.get_current_user
         raise HTTPException(404, "Finding not found")
 
     return {"ok": True}
+@app.post("/api/demo/reviews/{rid}/submit")
+def demo_submit_approval(rid: str):
+    if not rid.startswith("demo_"):
+        raise HTTPException(403, "Demo reviews only")
+
+    if not db.submit_for_approval(rid, "Demo Creator", "Demo Manager"):
+        raise HTTPException(404, "Demo review not found")
+
+    return {"ok": True, "status": "pending_approval"}
+
+
+@app.post("/api/demo/reviews/{rid}/approve")
+def demo_approve_review(rid: str, body: ApprovalActionIn):
+    if not rid.startswith("demo_"):
+        raise HTTPException(403, "Demo reviews only")
+
+    if not db.update_approval(
+        rid, "approved", "Demo Manager", body.comment
+    ):
+        raise HTTPException(404, "Demo approval workflow not found")
+
+    return {"ok": True, "status": "approved"}
+
+
+@app.post("/api/demo/reviews/{rid}/request-changes")
+def demo_request_changes(rid: str, body: ApprovalActionIn):
+    if not rid.startswith("demo_"):
+        raise HTTPException(403, "Demo reviews only")
+
+    if not body.comment or not body.comment.strip():
+        raise HTTPException(422, "A comment is required")
+
+    if not db.update_approval(
+        rid, "changes_requested", "Demo Manager", body.comment
+    ):
+        raise HTTPException(404, "Demo approval workflow not found")
+
+    return {"ok": True, "status": "changes_requested"}
 @app.post("/api/reviews/{rid}/submit")
 def submit_approval(rid: str, body: SubmitApprovalIn, user=Depends(auth.require_roles("Creator"))):
     if not db.submit_for_approval(
@@ -262,7 +356,7 @@ def request_changes(rid: str, body: ApprovalActionIn, user=Depends(auth.require_
         raise HTTPException(422, "A comment is required")
 
     if not db.update_approval(
-        rid, "changes_requested", user["name"], body.commentt
+        rid, "changes_requested", user["name"], body.comment
     ):
         raise HTTPException(404, "Approval workflow not found")
 

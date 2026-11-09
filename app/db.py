@@ -127,8 +127,8 @@ def init():
 # REVIEW FUNCTIONS
 # --------------------------------------------------
 
-def save_review(text, findings, summary, mode):
-    rid = uuid.uuid4().hex[:12]
+def save_review(text, findings, summary, mode, is_demo=False):
+    rid = ("demo_" if is_demo else "") + uuid.uuid4().hex[:12]
 
     with conn() as c:
         c.execute(
@@ -531,6 +531,86 @@ def get_analytics():
         "decisions": {
             row["status"]: row["total"]
             for row in decision_rows
+        },
+        "actor_activity": [
+            {"actor": row["actor"], "total": row["total"]}
+            for row in actor_rows
+        ],
+        "recent_activity": [dict(row) for row in activity_rows]
+    }
+
+def get_demo_analytics():
+    with conn() as c:
+        review_stats = c.execute("""
+            SELECT
+                COUNT(*) AS total_reviews,
+                SUM(CASE WHEN aw.status = 'approved' THEN 1 ELSE 0 END) AS approved,
+                SUM(CASE WHEN aw.status = 'pending_approval' THEN 1 ELSE 0 END) AS pending,
+                SUM(CASE WHEN aw.status = 'changes_requested' THEN 1 ELSE 0 END) AS changes_requested,
+                SUM(CASE WHEN aw.review_id IS NULL THEN 1 ELSE 0 END) AS drafts
+            FROM reviews r
+            LEFT JOIN approval_workflow aw ON r.id = aw.review_id
+            WHERE substr(r.id, 1, 5) = 'demo_'
+        """).fetchone()
+
+        severity_rows = c.execute("""
+            SELECT f.severity, COUNT(*) AS total
+            FROM findings f
+            JOIN reviews r ON f.review_id = r.id
+            WHERE substr(r.id, 1, 5) = 'demo_'
+            GROUP BY f.severity
+        """).fetchall()
+
+        category_rows = c.execute("""
+            SELECT f.category, COUNT(*) AS total
+            FROM findings f
+            JOIN reviews r ON f.review_id = r.id
+            WHERE substr(r.id, 1, 5) = 'demo_'
+            GROUP BY f.category
+            ORDER BY total DESC
+        """).fetchall()
+
+        decision_rows = c.execute("""
+            SELECT f.status, COUNT(*) AS total
+            FROM findings f
+            JOIN reviews r ON f.review_id = r.id
+            WHERE substr(r.id, 1, 5) = 'demo_'
+            GROUP BY f.status
+        """).fetchall()
+
+        actor_rows = c.execute("""
+            SELECT rh.actor, COUNT(*) AS total
+            FROM revision_history rh
+            JOIN reviews r ON rh.review_id = r.id
+            WHERE substr(r.id, 1, 5) = 'demo_'
+            GROUP BY rh.actor
+            ORDER BY total DESC
+        """).fetchall()
+
+        activity_rows = c.execute("""
+            SELECT
+                rh.review_id,
+                rh.actor,
+                rh.action,
+                rh.details,
+                rh.created_at,
+                r.summary
+            FROM revision_history rh
+            JOIN reviews r ON rh.review_id = r.id
+            WHERE substr(r.id, 1, 5) = 'demo_'
+            ORDER BY rh.created_at DESC
+            LIMIT 10
+        """).fetchall()
+
+    return {
+        "reviews": dict(review_stats),
+        "severity": {row["severity"]: row["total"] for row in severity_rows},
+        "categories": [
+            {"category": row["category"], "total": row["total"]}
+            for row in category_rows
+        ],
+        "decisions": {
+            row["status"]: row["total"] for row in decision_rows
         },
         "actor_activity": [
             {"actor": row["actor"], "total": row["total"]}
